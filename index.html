@@ -6,26 +6,23 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="registerContainer" class="container">
-        <h1>REGISTER</h1>
-        <input type="text" id="registerUserId" placeholder="Enter User ID">
-        <input type="password" id="registerPassword" placeholder="Enter Password">
-        <button onclick="register()">Register</button>
-        <button onclick="showLoginForm()">Login</button>
-    </div>
-    <div id="loginContainer" class="container hidden">
-        <h1>LOGIN</h1>
+    <div id="loginContainer" class="container">
+        <h1>LOGIN / REGISTER</h1>
         <input type="text" id="userIdInput" placeholder="Enter User ID">
         <input type="password" id="passwordInput" placeholder="Enter Password">
         <button onclick="login()">Login</button>
-        <button onclick="showRegisterForm()">Register</button>
+        <button onclick="register()">Register</button>
     </div>
+
     <div id="appContainer" class="container hidden">
-        <h1>INVESTMENT INTEREST CALCULATOR</h1>
+        <h1>Investment Interest Calculator</h1>
         <button onclick="logout()">Logout</button>
         <input type="text" id="userId" class="hidden">
+        
         <div id="investors"></div>
+
         <button onclick="showForm()" class="add-investor-btn">Add Investor</button>
+
         <div id="investorForm" class="form hidden">
             <input type="text" id="name" placeholder="Investor's Name">
             <input type="number" id="amount" placeholder="Invested Amount">
@@ -36,6 +33,7 @@
             <button onclick="hideForm()">Cancel</button>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>

@@ -5,19 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function showRegisterForm() {
-    document.getElementById('loginContainer').classList.add('hidden');
-    document.getElementById('registerContainer').classList.remove('hidden');
-}
-
-function showLoginForm() {
-    document.getElementById('registerContainer').classList.add('hidden');
-    document.getElementById('loginContainer').classList.remove('hidden');
-}
-
 function register() {
-    const userId = document.getElementById('registerUserId').value;
-    const password = document.getElementById('registerPassword').value;
+    const userId = document.getElementById('userIdInput').value;
+    const password = document.getElementById('passwordInput').value;
 
     if (userId && password) {
         const users = JSON.parse(localStorage.getItem('users')) || {};
@@ -25,7 +15,6 @@ function register() {
             users[userId] = password;
             localStorage.setItem('users', JSON.stringify(users));
             alert("Registration successful!");
-            showLoginForm();
         } else {
             alert("User ID already exists. Please choose a different User ID.");
         }
@@ -55,7 +44,6 @@ function logout() {
 
 function loginUser(userId) {
     document.getElementById('loginContainer').classList.add('hidden');
-    document.getElementById('registerContainer').classList.add('hidden');
     document.getElementById('appContainer').classList.remove('hidden');
     document.getElementById('userId').value = userId;
     loadUserData(userId);
@@ -84,10 +72,17 @@ function saveInvestor() {
             amount: amount,
             date: date,
             rate: rate,
-            totalInterest: totalInterest
+            totalInterest: totalInterest,
+            notificationStatus: 'off' // Default notification state
         };
-        saveToLocalStorage(userId, investor);
-        displayInvestor(investor);
+
+        const editingInvestorName = document.getElementById('investorForm').getAttribute('data-investor-name');
+        if (editingInvestorName) {
+            updateInvestor(userId, editingInvestorName, investor);
+        } else {
+            saveToLocalStorage(userId, investor);
+            displayInvestor(investor);
+        }
         hideForm();
     } else {
         alert("Please fill in all fields.");
@@ -105,98 +100,87 @@ function displayInvestor(investor) {
     const investorsDiv = document.getElementById('investors');
     const investorDiv = document.createElement('div');
     investorDiv.className = 'investor';
+    investorDiv.setAttribute('data-investor-name', investor.name);
     investorDiv.innerHTML = `
         <h3 class="investor-name">${investor.name}</h3>
         <div>
             <p class="interest-earned">Interest Earned: ₹${investor.totalInterest}</p>
-            <button onclick="toggleForm(this)">Edit</button>
+            <button onclick="editInvestor(this)">Edit</button>
             <button onclick="deleteInvestor(this)">Delete</button>
-            <button onclick="toggleNotification(this)" class="notification-bell off">🔔</button>
-        </div>
-        <div class="form hidden">
-            <input type="text" value="${investor.name}" placeholder="Investor's Name" class="name-input">
-            <input type="number" value="${investor.amount}" placeholder="Invested Amount" class="amount-input">
-            <input type="date" value="${investor.date}" placeholder="Date of Investment">
-            <input type="number" step="0.01" value="${investor.rate}" placeholder="Monthly Interest Rate (%)" class="rate-input">
-            <input type="text" value="${investor.totalInterest}" placeholder="Total Interest Earned" readonly class="interest-input">
-            <button onclick="saveChanges(this)">Save Changes</button>
+            <button onclick="toggleNotification(this)" class="notification-bell ${investor.notificationStatus}">🔔</button>
         </div>
     `;
-
     investorsDiv.appendChild(investorDiv);
-
-    const amountInput = investorDiv.querySelector('.amount-input');
-    const rateInput = investorDiv.querySelector('.rate-input');
-
-    amountInput.addEventListener('input', () => updateInterest(amountInput, rateInput, investorDiv));
-    rateInput.addEventListener('input', () => updateInterest(amountInput, rateInput, investorDiv));
 }
 
-function updateInterest(amountInput, rateInput, investorDiv) {
-    const amount = amountInput.value;
-    const rate = rateInput.value;
+function toggleNotification(button) {
+    const investorName = button.closest('.investor').getAttribute('data-investor-name');
+    const userId = document.getElementById('userId').value;
 
-    if (amount && rate) {
-        const totalInterest = calculateInterest(amount, rate);
-        const interestInput = investorDiv.querySelector('.interest-input');
-        interestInput.value = totalInterest;
-        investorDiv.querySelector('.interest-earned').innerText = `Interest Earned: ₹${totalInterest}`;
+    let investors = JSON.parse(localStorage.getItem(userId)) || [];
+    const investor = investors.find(inv => inv.name === investorName);
+
+    if (investor) {
+        // Toggle notification state
+        investor.notificationStatus = investor.notificationStatus === 'off' ? 'on' : 'off';
+        localStorage.setItem(userId, JSON.stringify(investors));
+
+        // Update the button's class and show the popup message
+        button.classList.toggle('on');
+        button.classList.toggle('off');
+        
+        showNotificationPopup(investor.notificationStatus);
+    }
+}
+
+function showNotificationPopup(status) {
+    const message = status === 'on' ? "Notifications Enabled" : "Notifications Disabled";
+    alert(message);
+}
+
+function editInvestor(button) {
+    const investorDiv = button.closest('.investor');
+    const investorName = investorDiv.getAttribute('data-investor-name');
+    const userId = document.getElementById('userId').value;
+
+    let investors = JSON.parse(localStorage.getItem(userId)) || [];
+    const investor = investors.find(inv => inv.name === investorName);
+
+    if (investor) {
+        document.getElementById('name').value = investor.name;
+        document.getElementById('amount').value = investor.amount;
+        document.getElementById('date').value = investor.date;
+        document.getElementById('rate').value = investor.rate;
+        document.getElementById('totalInterest').value = investor.totalInterest;
+
+        document.getElementById('investorForm').classList.remove('hidden');
+        document.getElementById('investorForm').setAttribute('data-investor-name', investorName);
+    }
+}
+
+function updateInvestor(userId, investorName, updatedInvestor) {
+    let investors = JSON.parse(localStorage.getItem(userId)) || [];
+    const investorIndex = investors.findIndex(inv => inv.name === investorName);
+
+    if (investorIndex !== -1) {
+        // Replace the investor data with the updated one
+        investors[investorIndex] = updatedInvestor;
+        localStorage.setItem(userId, JSON.stringify(investors));
+
+        // Reload the user data to reflect the changes
+        loadUserData(userId);
     }
 }
 
 function deleteInvestor(button) {
+    const investorName = button.closest('.investor').getAttribute('data-investor-name');
     const userId = document.getElementById('userId').value;
-    const name = button.parentElement.parentElement.querySelector('.investor-name').innerText;
-    removeFromLocalStorage(userId, name);
-    button.parentElement.parentElement.remove();
-}
 
-function toggleForm(button) {
-    const form = button.parentElement.nextElementSibling;
-    form.classList.toggle('hidden');
-}
-
-function saveChanges(button) {
-    const form = button.parentElement;
-    const name = form.querySelector('.name-input').value;
-    const amount = form.querySelector('.amount-input').value;
-    const date = form.querySelector('input[type="date"]').value;
-    const rate = form.querySelector('.rate-input').value;
-
-    const totalInterest = calculateInterest(amount, rate);
-
-    const investorDiv = form.parentElement;
-
-    investorDiv.querySelector('.investor-name').innerText = name;
-    investorDiv.querySelector('.interest-earned').innerText = `Interest Earned: ₹${totalInterest}`;
-
-    form.classList.add('hidden'); // Hide the form after saving changes
-}
-
-function clearForm() {
-    document.getElementById('name').value = '';
-    document.getElementById('amount').value = '';
-    document.getElementById('date').value = '';
-    document.getElementById('rate').value = '';
-    document.getElementById('totalInterest').value = '';
-}
-
-function toggleNotification(button) {
-    button.classList.toggle('on');
-    button.classList.toggle('off');
-    if (button.classList.contains('on')) {
-        button.innerText = '🔔 On';
-        alert('Notifications enabled for this investor.');
-    } else {
-        button.innerText = '🔔 Off';
-        alert('Notifications disabled for this investor.');
-    }
-}
-
-function saveToLocalStorage(userId, investor) {
     let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    investors.push(investor);
+    investors = investors.filter(inv => inv.name !== investorName);
     localStorage.setItem(userId, JSON.stringify(investors));
+
+    loadUserData(userId); // Reload user data after deletion
 }
 
 function loadUserData(userId) {
@@ -205,15 +189,16 @@ function loadUserData(userId) {
     investors.forEach(investor => displayInvestor(investor));
 }
 
-function removeFromLocalStorage(userId, name) {
+function saveToLocalStorage(userId, investor) {
     let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    investors = investors.filter(investor => investor.name !== name);
+    investors.push(investor);
     localStorage.setItem(userId, JSON.stringify(investors));
 }
 
-// Notify on the last day of the month
-const today = new Date();
-const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-if (today.getDate() === lastDay) {
-    alert("Reminder: Please pay the interest earned to your investors.");
+function clearForm() {
+    document.getElementById('name').value = '';
+    document.getElementById('amount').value = '';
+    document.getElementById('date').value = '';
+    document.getElementById('rate').value = '';
+    document.getElementById('totalInterest').value = '';
 }

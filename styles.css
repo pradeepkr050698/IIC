@@ -85,3 +85,15 @@ button:hover {
 .investor button {
     margin-left: 10px;
 }
+
+.notification-bell {
+    cursor: pointer;
+}
+
+.notification-bell.on {
+    color: green;
+}
+
+.notification-bell.off {
+    color: red;
+}
