@@ -121,11 +121,9 @@ function toggleNotification(button) {
     const investor = investors.find(inv => inv.name === investorName);
 
     if (investor) {
-        // Toggle notification state
         investor.notificationStatus = investor.notificationStatus === 'off' ? 'on' : 'off';
         localStorage.setItem(userId, JSON.stringify(investors));
 
-        // Update the button's class and show the popup message
         button.classList.toggle('on');
         button.classList.toggle('off');
         
@@ -163,11 +161,8 @@ function updateInvestor(userId, investorName, updatedInvestor) {
     const investorIndex = investors.findIndex(inv => inv.name === investorName);
 
     if (investorIndex !== -1) {
-        // Replace the investor data with the updated one
         investors[investorIndex] = updatedInvestor;
         localStorage.setItem(userId, JSON.stringify(investors));
-
-        // Reload the user data to reflect the changes
         loadUserData(userId);
     }
 }
@@ -201,4 +196,19 @@ function clearForm() {
     document.getElementById('date').value = '';
     document.getElementById('rate').value = '';
     document.getElementById('totalInterest').value = '';
+}
+
+// Refresh interest for all investors
+function refreshInterest() {
+    const userId = document.getElementById('userId').value;
+    let investors = JSON.parse(localStorage.getItem(userId)) || [];
+    
+    investors.forEach(investor => {
+        const updatedInterest = calculateInterest(investor.amount, investor.rate);
+        investor.totalInterest = updatedInterest;
+    });
+
+    localStorage.setItem(userId, JSON.stringify(investors));
+
+    loadUserData(userId);
 }

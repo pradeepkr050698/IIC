@@ -97,3 +97,24 @@ button:hover {
 .notification-bell.off {
     color: red;
 }
+
+.header-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.refresh-btn {
+    background-color: #00796b;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background-color: #004d40;
+}
