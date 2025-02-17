@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (savedUserId) {
         loginUser(savedUserId);
     }
+
+    // Check if the data needs to be refreshed every 24 hours
+    checkAndAutoRefresh();
 });
 
 function register() {
@@ -47,6 +50,37 @@ function loginUser(userId) {
     document.getElementById('appContainer').classList.remove('hidden');
     document.getElementById('userId').value = userId;
     loadUserData(userId);
+}
+
+// Automatically refresh interest data once a day
+function checkAndAutoRefresh() {
+    const userId = document.getElementById('userId')?.value;
+    if (userId) {
+        // Get the last refresh date from localStorage
+        const lastRefreshDate = localStorage.getItem('lastRefreshDate');
+        const currentDate = new Date().toLocaleDateString();
+
+        if (lastRefreshDate !== currentDate) {
+            // Update the data and store the current date
+            refreshInterest();
+            localStorage.setItem('lastRefreshDate', currentDate);
+        }
+    }
+
+    // Set an interval to check for daily refresh
+    setInterval(() => {
+        const userId = document.getElementById('userId')?.value;
+        if (userId) {
+            const lastRefreshDate = localStorage.getItem('lastRefreshDate');
+            const currentDate = new Date().toLocaleDateString();
+
+            if (lastRefreshDate !== currentDate) {
+                // Update the data and store the current date
+                refreshInterest();
+                localStorage.setItem('lastRefreshDate', currentDate);
+            }
+        }
+    }, 86400000); // 24 hours in milliseconds (1000 * 60 * 60 * 24)
 }
 
 function showForm() {
