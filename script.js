@@ -135,6 +135,29 @@ function updateClientDropdown() {
     });
 }
 
+function updatePaymentsForClient() {
+    const clientName = document.getElementById('clientTrackerName').value;
+
+    if (clientName) {
+        const clientPayments = payments.filter(payment => payment.clientName === clientName);
+        const tableBody = document.getElementById('paymentRecords').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        clientPayments.forEach(payment => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${payment.paymentDate}</td>
+                <td>${payment.paymentAmount}</td>
+                <td>${payment.brokerCut}</td>
+                <td>${payment.paidToClient}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        updateTotalSummary(clientPayments);
+    }
+}
+
 function addPayment() {
     const clientName = document.getElementById('clientTrackerName').value;
     const paymentDate = document.getElementById('paymentDate').value;
@@ -157,34 +180,16 @@ function addPayment() {
 
         localStorage.setItem('payments', JSON.stringify(payments));
 
-        updatePaymentTable();
-        updateTotalSummary();
+        updatePaymentsForClient();
     } else {
         alert('Client not found.');
     }
 }
 
-function updatePaymentTable() {
-    const tableBody = document.getElementById('paymentRecords').querySelector('tbody');
-    tableBody.innerHTML = '';
-
-    payments.forEach(payment => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${payment.clientName}</td>
-            <td>${payment.paymentDate}</td>
-            <td>${payment.paymentAmount}</td>
-            <td>${payment.brokerCut}</td>
-            <td>${payment.paidToClient}</td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
-
-function updateTotalSummary() {
-    const totalAmountPaid = payments.reduce((sum, payment) => sum + payment.paymentAmount, 0);
-    const totalAmountPaidBroker = payments.reduce((sum, payment) => sum + payment.brokerCut, 0);
-    const totalAmountPaidClient = payments.reduce((sum, payment) => sum + payment.paidToClient, 0);
+function updateTotalSummary(clientPayments) {
+    const totalAmountPaid = clientPayments.reduce((sum, payment) => sum + payment.paymentAmount, 0);
+    const totalAmountPaidBroker = clientPayments.reduce((sum, payment) => sum + payment.brokerCut, 0);
+    const totalAmountPaidClient = clientPayments.reduce((sum, payment) => sum + payment.paidToClient, 0);
 
     document.getElementById('totalAmountPaid').textContent = totalAmountPaid.toFixed(2);
     document.getElementById('totalAmountPaidBroker').textContent = totalAmountPaidBroker.toFixed(2);

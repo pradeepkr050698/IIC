@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -76,7 +75,7 @@
         <div id="totalPaidTracker" class="form-container" style="display: none;">
             <h2>Total Amount Paid Tracker</h2>
             <label for="clientTrackerName">Client Name:</label>
-            <select id="clientTrackerName" required>
+            <select id="clientTrackerName" required onchange="updatePaymentsForClient()">
                 <option value="">Select Client</option>
             </select><br><br>
             <label for="paymentDate">Payment Date:</label>
@@ -89,7 +88,6 @@
             <table id="paymentRecords">
                 <thead>
                     <tr>
-                        <th>Client Name</th>
                         <th>Payment Date</th>
                         <th>Payment Amount</th>
                         <th>Broker Cut</th>
@@ -97,7 +95,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Payment records will appear here -->
+                    <!-- Payment records for selected client will appear here -->
                 </tbody>
             </table>
 
