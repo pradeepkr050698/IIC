@@ -24,6 +24,8 @@ function login() {
         localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
+        updateClientTable();
+        updateClientDropdown();
     } else {
         alert('Invalid credentials');
     }
@@ -53,6 +55,8 @@ function logout() {
 if (loggedInUser) {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
+    updateClientTable();
+    updateClientDropdown();
 } else {
     document.getElementById('loginPage').style.display = 'block';
     document.getElementById('dashboard').style.display = 'none';
