@@ -1,248 +1,213 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const savedUserId = localStorage.getItem('savedUserId');
-    if (savedUserId) {
-        loginUser(savedUserId);
-    }
+// Arrays to store client and payment data
+let clients = JSON.parse(localStorage.getItem('clients')) || [];
+let payments = JSON.parse(localStorage.getItem('payments')) || [];
 
-    // Check if the data needs to be refreshed every 24 hours
-    checkAndAutoRefresh();
-});
+// Login/Register Functionality
+let loggedIn = false;
+
+function showRegister() {
+  document.getElementById("loginForm").style.display = "none";
+  document.getElementById("registerForm").style.display = "block";
+}
+
+function showLogin() {
+  document.getElementById("loginForm").style.display = "block";
+  document.getElementById("registerForm").style.display = "none";
+}
 
 function register() {
-    const userId = document.getElementById('userIdInput').value;
-    const password = document.getElementById('passwordInput').value;
+  const newUserId = document.getElementById("newUserId").value;
+  const newPassword = document.getElementById("newPassword").value;
 
-    if (userId && password) {
-        const users = JSON.parse(localStorage.getItem('users')) || {};
-        if (!users[userId]) {
-            users[userId] = password;
-            localStorage.setItem('users', JSON.stringify(users));
-            alert("Registration successful!");
-        } else {
-            alert("User ID already exists. Please choose a different User ID.");
-        }
-    } else {
-        alert("Please enter both User ID and Password.");
-    }
+  if (newUserId && newPassword) {
+    localStorage.setItem('userId', newUserId);
+    localStorage.setItem('password', newPassword);
+    alert('Registered successfully! Please login.');
+    showLogin();
+  } else {
+    alert("Please fill in all fields.");
+  }
 }
 
 function login() {
-    const userId = document.getElementById('userIdInput').value;
-    const password = document.getElementById('passwordInput').value;
+  const userId = document.getElementById("userId").value;
+  const password = document.getElementById("password").value;
 
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    if (users[userId] === password) {
-        localStorage.setItem('savedUserId', userId);
-        loginUser(userId);
-    } else {
-        alert("Invalid User ID or Password.");
-    }
+  const storedUserId = localStorage.getItem('userId');
+  const storedPassword = localStorage.getItem('password');
+
+  if (userId === storedUserId && password === storedPassword) {
+    loggedIn = true;
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("logoutButton").style.display = "block";
+  } else {
+    alert("Invalid credentials, please try again.");
+  }
 }
 
 function logout() {
-    localStorage.removeItem('savedUserId');
-    document.getElementById('appContainer').classList.add('hidden');
-    document.getElementById('loginContainer').classList.remove('hidden');
+  loggedIn = false;
+  document.getElementById("loginPage").style.display = "block";
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("logoutButton").style.display = "none";
 }
 
-function loginUser(userId) {
-    document.getElementById('loginContainer').classList.add('hidden');
-    document.getElementById('appContainer').classList.remove('hidden');
-    document.getElementById('userId').value = userId;
-    loadUserData(userId);
+// Toggle forms
+function toggleForm(formId) {
+  const form = document.getElementById(formId);
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
-// Automatically refresh interest data once a day
-function checkAndAutoRefresh() {
-    const userId = document.getElementById('userId')?.value;
-    if (userId) {
-        // Get the last refresh date from localStorage
-        const lastRefreshDate = localStorage.getItem('lastRefreshDate');
-        const currentDate = new Date().toLocaleDateString();
+// Add client function
+function addClient() {
+  const clientName = document.getElementById('clientName').value;
+  const investmentAmount = document.getElementById('investmentAmount').value;
+  const returnRate = document.getElementById('returnRate').value;
+  const brokerCutRate = document.getElementById('brokerCutRate').value;
+  const startDate = document.getElementById('startDate').value;
 
-        if (lastRefreshDate !== currentDate) {
-            // Update the data and store the current date
-            refreshInterest();
-            localStorage.setItem('lastRefreshDate', currentDate);
-        }
-    }
+  if (!clientName || !investmentAmount || !returnRate || !brokerCutRate || !startDate) {
+    alert('Please fill in all fields.');
+    return;
+  }
 
-    // Set an interval to check for daily refresh
-    setInterval(() => {
-        const userId = document.getElementById('userId')?.value;
-        if (userId) {
-            const lastRefreshDate = localStorage.getItem('lastRefreshDate');
-            const currentDate = new Date().toLocaleDateString();
+  const client = {
+    name: clientName,
+    amount: parseFloat(investmentAmount),
+    returnRate: parseFloat(returnRate),
+    brokerCutRate: parseFloat(brokerCutRate),
+    startDate: startDate
+  };
 
-            if (lastRefreshDate !== currentDate) {
-                // Update the data and store the current date
-                refreshInterest();
-                localStorage.setItem('lastRefreshDate', currentDate);
-            }
-        }
-    }, 86400000); // 24 hours in milliseconds (1000 * 60 * 60 * 24)
+  clients.push(client);
+  localStorage.setItem('clients', JSON.stringify(clients)); // Save to localStorage
+  updateClientDropdown();
+  displayClientData();
+
+  document.getElementById('clientName').value = '';
+  document.getElementById('investmentAmount').value = '';
+  document.getElementById('returnRate').value = '';
+  document.getElementById('brokerCutRate').value = '';
+  document.getElementById('startDate').value = '';
 }
 
-function showForm() {
-    document.getElementById('investorForm').classList.remove('hidden');
-    clearForm();
+// Update the client dropdown with names
+function updateClientDropdown() {
+  const dropdown = document.getElementById('clientTrackerName');
+  dropdown.innerHTML = ''; // Clear previous options
+  clients.forEach(client => {
+    const option = document.createElement('option');
+    option.value = client.name;
+    option.textContent = client.name;
+    dropdown.appendChild(option);
+  });
 }
 
-function hideForm() {
-    document.getElementById('investorForm').classList.add('hidden');
-}
+// Display client data in table
+function displayClientData() {
+  const clientDataTable = document.getElementById('clientData');
+  clientDataTable.innerHTML = ''; // Clear previous data
 
-function saveInvestor() {
-    const name = document.getElementById('name').value;
-    const amount = document.getElementById('amount').value;
-    const date = document.getElementById('date').value;
-    const rate = document.getElementById('rate').value;
-    const userId = document.getElementById('userId').value;
-
-    if (name && amount && date && rate && userId) {
-        const totalInterest = calculateInterest(amount, rate);
-        const investor = {
-            name: name,
-            amount: amount,
-            date: date,
-            rate: rate,
-            totalInterest: totalInterest,
-            notificationStatus: 'off' // Default notification state
-        };
-
-        const editingInvestorName = document.getElementById('investorForm').getAttribute('data-investor-name');
-        if (editingInvestorName) {
-            updateInvestor(userId, editingInvestorName, investor);
-        } else {
-            saveToLocalStorage(userId, investor);
-            displayInvestor(investor);
-        }
-        hideForm();
-    } else {
-        alert("Please fill in all fields.");
-    }
-}
-
-function calculateInterest(amount, rate) {
-    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-    const currentDate = new Date().getDate();
-    const dailyRate = rate / daysInMonth / 100;
-    return (amount * dailyRate * currentDate).toFixed(2);
-}
-
-function displayInvestor(investor) {
-    const investorsDiv = document.getElementById('investors');
-    const investorDiv = document.createElement('div');
-    investorDiv.className = 'investor';
-    investorDiv.setAttribute('data-investor-name', investor.name);
-    investorDiv.innerHTML = `
-        <h3 class="investor-name">${investor.name}</h3>
-        <div>
-            <p class="interest-earned">Interest Earned: ₹${investor.totalInterest}</p>
-            <button onclick="editInvestor(this)">Edit</button>
-            <button onclick="deleteInvestor(this)">Delete</button>
-            <button onclick="toggleNotification(this)" class="notification-bell ${investor.notificationStatus}">🔔</button>
-        </div>
+  clients.forEach((client, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${client.name}</td>
+      <td>${client.amount}</td>
+      <td>${client.returnRate}%</td>
+      <td>${client.brokerCutRate}%</td>
+      <td>${formatDate(client.startDate)}</td>
+      <td>${(client.amount * client.returnRate / 100).toFixed(2)}</td>
+      <td>${(client.amount * client.brokerCutRate / 100).toFixed(2)}</td>
+      <td>${(client.amount * client.returnRate / 100).toFixed(2)}</td>
+      <td>${(client.amount * client.returnRate / 100 + client.amount * client.brokerCutRate / 100).toFixed(2)}</td>
+      <td><span class="delete-btn" onclick="deleteClient(${index})">🗑️</span></td>
     `;
-    investorsDiv.appendChild(investorDiv);
+    clientDataTable.appendChild(row);
+  });
 }
 
-function toggleNotification(button) {
-    const investorName = button.closest('.investor').getAttribute('data-investor-name');
-    const userId = document.getElementById('userId').value;
-
-    let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    const investor = investors.find(inv => inv.name === investorName);
-
-    if (investor) {
-        investor.notificationStatus = investor.notificationStatus === 'off' ? 'on' : 'off';
-        localStorage.setItem(userId, JSON.stringify(investors));
-
-        button.classList.toggle('on');
-        button.classList.toggle('off');
-        
-        showNotificationPopup(investor.notificationStatus);
-    }
+// Format date to D-M-Y
+function formatDate(date) {
+  const d = new Date(date);
+  return `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
 }
 
-function showNotificationPopup(status) {
-    const message = status === 'on' ? "Notifications Enabled" : "Notifications Disabled";
-    alert(message);
+// Delete client function
+function deleteClient(index) {
+  if (confirm("Are you sure you want to delete this client?")) {
+    clients.splice(index, 1);
+    localStorage.setItem('clients', JSON.stringify(clients)); // Save to localStorage
+    displayClientData();
+  }
 }
 
-function editInvestor(button) {
-    const investorDiv = button.closest('.investor');
-    const investorName = investorDiv.getAttribute('data-investor-name');
-    const userId = document.getElementById('userId').value;
+// Add payment function
+function addPayment() {
+  const clientName = document.getElementById('clientTrackerName').value;
+  const paymentDate = document.getElementById('paymentDate').value;
+  const paymentAmount = document.getElementById('paymentAmount').value;
 
-    let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    const investor = investors.find(inv => inv.name === investorName);
+  if (!clientName || !paymentDate || !paymentAmount) {
+    alert('Please fill in all fields.');
+    return;
+  }
 
-    if (investor) {
-        document.getElementById('name').value = investor.name;
-        document.getElementById('amount').value = investor.amount;
-        document.getElementById('date').value = investor.date;
-        document.getElementById('rate').value = investor.rate;
-        document.getElementById('totalInterest').value = investor.totalInterest;
+  const client = clients.find(client => client.name === clientName);
+  if (!client) {
+    alert('Client not found.');
+    return;
+  }
 
-        document.getElementById('investorForm').classList.remove('hidden');
-        document.getElementById('investorForm').setAttribute('data-investor-name', investorName);
-    }
+  const brokerAmount = (client.amount * client.brokerCutRate) / 100;
+  const clientPaid = paymentAmount - brokerAmount;
+
+  const paymentRecord = {
+    clientName: clientName,
+    paymentDate: paymentDate,
+    paymentAmount: parseFloat(paymentAmount),
+    brokerAmount: brokerAmount,
+    clientPaid: clientPaid
+  };
+
+  payments.push(paymentRecord);
+  localStorage.setItem('payments', JSON.stringify(payments)); // Save to localStorage
+  filterClientPayments();
+  alert('Payment added successfully!');
+
+  document.getElementById('paymentDate').value = '';
+  document.getElementById('paymentAmount').value = '';
 }
 
-function updateInvestor(userId, investorName, updatedInvestor) {
-    let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    const investorIndex = investors.findIndex(inv => inv.name === investorName);
+// Filter payments for the selected client
+function filterClientPayments() {
+  const selectedClient = document.getElementById('clientTrackerName').value;
+  const filteredPayments = payments.filter(payment => payment.clientName === selectedClient);
 
-    if (investorIndex !== -1) {
-        investors[investorIndex] = updatedInvestor;
-        localStorage.setItem(userId, JSON.stringify(investors));
-        loadUserData(userId);
-    }
-}
+  const paymentTableBody = document.getElementById('paymentRecords');
+  paymentTableBody.innerHTML = ''; // Clear previous records
 
-function deleteInvestor(button) {
-    const investorName = button.closest('.investor').getAttribute('data-investor-name');
-    const userId = document.getElementById('userId').value;
+  let totalPaid = 0;
+  let totalBroker = 0;
+  let totalClient = 0;
 
-    let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    investors = investors.filter(inv => inv.name !== investorName);
-    localStorage.setItem(userId, JSON.stringify(investors));
+  filteredPayments.forEach(payment => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${payment.clientName}</td>
+      <td>${payment.paymentDate}</td>
+      <td>${payment.paymentAmount.toFixed(2)}</td>
+      <td>${payment.brokerAmount.toFixed(2)}</td>
+      <td>${payment.clientPaid.toFixed(2)}</td>
+    `;
+    paymentTableBody.appendChild(row);
 
-    loadUserData(userId); // Reload user data after deletion
-}
+    totalPaid += payment.paymentAmount;
+    totalBroker += payment.brokerAmount;
+    totalClient += payment.clientPaid;
+  });
 
-function loadUserData(userId) {
-    const investors = JSON.parse(localStorage.getItem(userId)) || [];
-    document.getElementById('investors').innerHTML = '';
-    investors.forEach(investor => displayInvestor(investor));
-}
-
-function saveToLocalStorage(userId, investor) {
-    let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    investors.push(investor);
-    localStorage.setItem(userId, JSON.stringify(investors));
-}
-
-function clearForm() {
-    document.getElementById('name').value = '';
-    document.getElementById('amount').value = '';
-    document.getElementById('date').value = '';
-    document.getElementById('rate').value = '';
-    document.getElementById('totalInterest').value = '';
-}
-
-// Refresh interest for all investors
-function refreshInterest() {
-    const userId = document.getElementById('userId').value;
-    let investors = JSON.parse(localStorage.getItem(userId)) || [];
-    
-    investors.forEach(investor => {
-        const updatedInterest = calculateInterest(investor.amount, investor.rate);
-        investor.totalInterest = updatedInterest;
-    });
-
-    localStorage.setItem(userId, JSON.stringify(investors));
-
-    loadUserData(userId);
+  document.getElementById('totalAmountPaid').textContent = totalPaid.toFixed(2);
+  document.getElementById('totalAmountPaidBroker').textContent = totalBroker.toFixed(2);
+  document.getElementById('totalAmountPaidClient').textContent = totalClient.toFixed(2);
 }
