@@ -1,129 +1,113 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Investment Payment Tracker</title>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Calculator and Payment Tracker</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- Login/Register page -->
-<div id="loginPage">
-<h2>WELCOME</h2>
-<div id="loginForm">
-<h3>Login</h3>
-<input type="text" id="userId" placeholder="User ID"><br><br>
-<input type="password" id="password" placeholder="Password"><br><br>
-<button onclick="login()">Login</button>
-<br><br>
-<button onclick="showRegister()">Register</button>
-</div>
+    <div id="loginPage">
+        <!-- Login Form -->
+        <div class="form-container" id="loginForm">
+            <h2>Login</h2>
+            <label for="userId">User ID:</label>
+            <input type="text" id="userId" required><br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required><br><br>
+            <button onclick="login()">Login</button><br><br>
+            <button onclick="showRegister()">Register</button>
+        </div>
 
-<div id="registerForm" style="display:none;">
-<h3>Register</h3>
-<input type="text" id="newUserId" placeholder="User ID"><br><br>
-<input type="password" id="newPassword" placeholder="Password"><br><br>
-<button onclick="register()">Register</button>
-<br><br>
-<button onclick="showLogin()">Login</button>
-</div>
-</div>
+        <!-- Register Form -->
+        <div class="form-container" id="registerForm" style="display: none;">
+            <h2>Register</h2>
+            <label for="newUserId">User ID:</label>
+            <input type="text" id="newUserId" required><br><br>
+            <label for="newPassword">Password:</label>
+            <input type="password" id="newPassword" required><br><br>
+            <button onclick="register()">Register</button><br><br>
+            <button onclick="showLogin()">Back to Login</button>
+        </div>
+    </div>
 
-<!-- Main Dashboard (hidden initially) -->
-<div id="dashboard" style="display:none;">
-<!-- Logout Button -->
-<button id="logoutButton" onclick="logout()">Logout</button>
+    <div id="dashboard" style="display: none;">
+        <button onclick="toggleForm('investmentCalculator')">Investment Calculator</button>
+        <button onclick="toggleForm('totalPaidTracker')">Total Amount Paid Tracker</button>
+        <button onclick="logout()">Logout</button>
 
-<!-- Toggle buttons to switch between forms -->
-<div style="text-align:center;">
-<button onclick="toggleForm('investmentCalculator')">Investment Payment Calculator</button><br>
-<button onclick="toggleForm('totalPaidTracker')">Total Amount Paid Tracker</button>
-</div>
+        <div id="investmentCalculator" class="form-container" style="display: none;">
+            <h2>Investment Calculator</h2>
+            <label for="clientName">Client Name:</label>
+            <input type="text" id="clientName" required><br><br>
+            <label for="investmentAmount">Investment Amount:</label>
+            <input type="number" id="investmentAmount" required><br><br>
+            <label for="returnRate">Return Rate (%):</label>
+            <input type="number" id="returnRate" required><br><br>
+            <label for="brokerCutRate">Broker Cut Rate (%):</label>
+            <input type="number" id="brokerCutRate" required><br><br>
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" required><br><br>
+            <button onclick="addClient()">Add Client</button>
 
-<!-- Investment Payment Calculator Form -->
-<div id="investmentCalculator" class="form-container" style="display: none;">
-<h1>Investment Payment Calculator</h1>
-<label for="clientName">Client Name: </label>
-<input type="text" id="clientName" placeholder="Client Name" required /><br><br>
+            <h3>Investment Data</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Investment Amount</th>
+                        <th>Return Rate</th>
+                        <th>Broker Cut Rate</th>
+                        <th>Start Date</th>
+                        <th>Monthly Return</th>
+                        <th>Broker Cut</th>
+                        <th>Paid to Client</th>
+                        <th>Paid to Client + Broker</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="clientData">
+                    <!-- Client data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
 
-<label for="investmentAmount">Investment Amount (₹): </label>
-<input type="number" id="investmentAmount" placeholder="Amount" required /><br><br>
+        <div id="totalPaidTracker" class="form-container" style="display: none;">
+            <h2>Total Amount Paid Tracker</h2>
+            <label for="clientTrackerName">Client Name:</label>
+            <select id="clientTrackerName" required>
+                <option value="">Select Client</option>
+            </select><br><br>
+            <label for="paymentDate">Payment Date:</label>
+            <input type="date" id="paymentDate" required><br><br>
+            <label for="paymentAmount">Payment Amount:</label>
+            <input type="number" id="paymentAmount" required><br><br>
+            <button onclick="addPayment()">Add Payment</button>
 
-<label for="returnRate">Return Rate (%): </label>
-<input type="number" id="returnRate" placeholder="Return Rate" required /><br><br>
+            <h3>Payment Records</h3>
+            <table id="paymentRecords">
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Payment Date</th>
+                        <th>Payment Amount</th>
+                        <th>Broker Cut</th>
+                        <th>Paid to Client</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Payment records will appear here -->
+                </tbody>
+            </table>
 
-<label for="brokerCutRate">Broker's Cut (%): </label>
-<input type="number" id="brokerCutRate" placeholder="Broker's Cut" required /><br><br>
+            <h3>Total Summary</h3>
+            <p>Total Amount Paid: <span id="totalAmountPaid">0.00</span></p>
+            <p>Total Amount Paid to Broker: <span id="totalAmountPaidBroker">0.00</span></p>
+            <p>Total Amount Paid to Client: <span id="totalAmountPaidClient">0.00</span></p>
+        </div>
+    </div>
 
-<label for="startDate">Start Date: </label>
-<input type="date" id="startDate" required /><br><br>
-
-<button onclick="addClient()">Add Client</button>
-
-<!-- Table to display the clients' information -->
-<table>
-<thead>
-<tr>
-<th>Client Name</th>
-<th>Investment Amount (₹)</th>
-<th>Return % per Month</th>
-<th>Broker's Cut %</th>
-<th>Start Date</th>
-<th>Monthly Return (₹)</th>
-<th>Broker's Cut (₹)</th>
-<th>Paid to Client (₹)</th>
-<th>Paid to Client & Broker (₹)</th>
-<th>Actions</th> <!-- Added Actions column for Delete -->
-</tr>
-</thead>
-<tbody id="clientData">
-<!-- Dynamic content will be inserted here -->
-</tbody>
-</table>
-</div>
-
-<!-- Total Amount Paid Tracker Form -->
-<div id="totalPaidTracker" class="form-container" style="display: none;">
-<h1>Total Amount Paid Tracker</h1>
-<label for="clientTrackerName">Client Name: </label>
-<select id="clientTrackerName" onchange="filterClientPayments()">
-<!-- Client names will be added dynamically here -->
-</select><br><br>
-
-<label for="paymentDate">Payment Date: </label>
-<input type="date" id="paymentDate" required /><br><br>
-
-<label for="paymentAmount">Amount Paid (₹): </label>
-<input type="number" id="paymentAmount" required /><br><br>
-
-<button onclick="addPayment()">Add Payment</button>
-
-<!-- Table to display payment records -->
-<table>
-<thead>
-<tr>
-<th>Client Name</th>
-<th>Payment Date</th>
-<th>Amount Paid (₹)</th>
-<th>Broker's Cut (₹)</th>
-<th>Paid to Client (₹)</th>
-</tr>
-</thead>
-<tbody id="paymentRecords">
-<!-- Payment records will be displayed here -->
-</tbody>
-</table>
-
-<!-- Total Summary Section -->
-<div id="totalSummary" class="total-summary">
-<p>Total Amount Paid: ₹<span id="totalAmountPaid">0</span></p>
-<p>Total Amount Paid to Broker: ₹<span id="totalAmountPaidBroker">0</span></p>
-<p>Total Amount Paid to Client: ₹<span id="totalAmountPaidClient">0</span></p>
-</div>
-</div>
-</div>
-
-<script src="script.js"></script>
-
+    <script src="script.js"></script>
 </body>
 </html>
