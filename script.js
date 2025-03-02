@@ -3,6 +3,16 @@ let loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || null;
 let clients = JSON.parse(localStorage.getItem('clients')) || [];
 let payments = JSON.parse(localStorage.getItem('payments')) || [];
 
+document.getElementById('showRegisterBtn').addEventListener('click', showRegister);
+document.getElementById('showLoginBtn').addEventListener('click', showLogin);
+document.getElementById('loginBtn').addEventListener('click', login);
+document.getElementById('registerBtn').addEventListener('click', register);
+document.getElementById('logoutBtn').addEventListener('click', logout);
+document.getElementById('addClientBtn').addEventListener('click', addClient);
+document.getElementById('toggleInvestmentCalculator').addEventListener('click', () => toggleForm('investmentCalculator'));
+document.getElementById('toggleTotalPaidTracker').addEventListener('click', () => toggleForm('totalPaidTracker'));
+document.getElementById('addPaymentBtn').addEventListener('click', addPayment);
+
 function showLogin() {
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('registerForm').style.display = 'none';
@@ -123,7 +133,6 @@ function updateClientTable() {
 function deleteClient(index) {
     clients.splice(index, 1);
     localStorage.setItem('clients', JSON.stringify(clients));
-
     updateClientTable();
     updateClientDropdown();
 }
@@ -170,7 +179,6 @@ function addPayment() {
     const client = clients.find(c => c.clientName === clientName);
 
     if (client) {
-        // Broker cut is now calculated based on the Investment Amount
         const brokerCut = (client.investmentAmount * client.brokerCutRate) / 100;
         const paidToClient = paymentAmount - brokerCut;
 

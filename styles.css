@@ -5,11 +5,6 @@ body {
     background-color: #f4f4f4;
 }
 
-.container {
-    max-width: 1200px;
-    margin: auto;
-}
-
 .form-container {
     background-color: #fff;
     padding: 20px;
